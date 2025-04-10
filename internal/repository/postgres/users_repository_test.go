@@ -32,6 +32,14 @@ func TestCreate(t *testing.T) {
 		t.Error(err)
 	}
 
+	// clear db
+	defer func() {
+		err = repo.Delete(t.Context(), user.Id)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
 	if !repo.Exists(t.Context(), user.Id) {
 		t.Errorf("user %d wasn't created", user.Id)
 	}
@@ -61,6 +69,16 @@ func TestGetFiltered(t *testing.T) {
 		users[i].Id = created.Id
 	}
 
+	// clear db
+	defer func() {
+		for _, u := range users {
+			err := repo.Delete(t.Context(), u.Id)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+	}()
+
 	filtered, err := repo.GetFiltered(t.Context(), filter)
 	if err != nil {
 		t.Error(err)
@@ -73,12 +91,6 @@ func TestGetFiltered(t *testing.T) {
 	}
 
 	// clear db
-	for _, u := range users {
-		err := repo.Delete(t.Context(), u.Id)
-		if err != nil {
-			t.Error(err)
-		}
-	}
 }
 
 func openDb(t *testing.T) *sql.DB {
