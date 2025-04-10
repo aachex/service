@@ -19,11 +19,18 @@ func NewUsersRepository(db *sql.DB) *UsersRepository {
 
 // GetFiltered возвращает список пользователей, поля которых равны указанным значениям.
 // Параметр filter является мапой, в которой ключи - имена свойств, а значения - желаемые значения для свойств.
-func (r *UsersRepository) GetFiltered(ctx context.Context, filter map[string]string) ([]model.User, error) {
-	query := "SELECT id, name, surname, patronymic FROM users WHERE true" // запрос по умолчанию, который вернёт всех пользователей
-	params := make([]any, 0)
+func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, filter map[string]any) ([]model.User, error) {
+	// запрос по умолчанию, который вернёт выборку пользователей
+	query := `
+		SELECT *
+		FROM (SELECT id, name, surname, patronymic FROM users OFFSET $1 LIMIT $2) 
+		WHERE true
+	`
 
-	pholder := 1
+	params := []any{offset, limit}
+
+	// Параметры 1 и 2 - offset и limit
+	pholder := 3
 	for k, v := range filter {
 		if k != "" {
 			// k - имя поля в базе данных

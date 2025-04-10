@@ -49,7 +49,7 @@ func TestGetFiltered(t *testing.T) {
 	loadEnv(t)
 	db := openDb(t)
 
-	filter := make(map[string]string)
+	filter := make(map[string]any)
 	filter["name"] = mock.name
 	filter["surname"] = mock.surname
 
@@ -79,7 +79,7 @@ func TestGetFiltered(t *testing.T) {
 		}
 	}()
 
-	filtered, err := repo.GetFiltered(t.Context(), filter)
+	filtered, err := repo.GetFiltered(t.Context(), 0, 100, filter)
 	if err != nil {
 		t.Error(err)
 	}
