@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"slices"
+
 	"github.com/aachex/service/internal/model"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // postgres driver
@@ -49,9 +51,9 @@ func TestGetFiltered(t *testing.T) {
 	loadEnv(t)
 	db := openDb(t)
 
-	filter := make(map[string]any)
-	filter["name"] = mock.name
-	filter["surname"] = mock.surname
+	filter := make(map[string][]any)
+	filter["name"] = []any{mock.name, "name"}
+	filter["surname"] = []any{mock.surname}
 
 	repo := NewUsersRepository(db)
 	users := []model.User{
@@ -85,12 +87,10 @@ func TestGetFiltered(t *testing.T) {
 	}
 
 	for _, u := range filtered {
-		if u.Name != mock.name || u.Surname != mock.surname {
+		if !contains(filter["name"], u.Name) || !contains(filter["surname"], u.Surname) {
 			t.Error("incorrect work of GetFiltered: name or surname mismatch")
 		}
 	}
-
-	// clear db
 }
 
 func openDb(t *testing.T) *sql.DB {
@@ -106,4 +106,8 @@ func loadEnv(t *testing.T) {
 	if err != nil {
 		t.Error("Failed to load .env file")
 	}
+}
+
+func contains(s []any, e any) bool {
+	return slices.Contains(s, e)
 }

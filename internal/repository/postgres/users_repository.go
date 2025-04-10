@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aachex/service/internal/model"
 )
@@ -17,31 +18,45 @@ func NewUsersRepository(db *sql.DB) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-// GetFiltered возвращает список пользователей, поля которых равны указанным значениям.
-// Параметр filter является мапой, в которой ключи - имена свойств, а значения - желаемые значения для свойств.
-func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, filter map[string]any) ([]model.User, error) {
+// createFilteringQuery генерирует SQL-запрос, который фильтрует и возвращает данные в соответствии с фильтром filter.
+func createFilteringQuery(offset, limit int, filter map[string][]any) (query string, params []any) {
 	// запрос по умолчанию, который вернёт выборку пользователей
-	query := `
+	query = `
 		SELECT *
 		FROM (SELECT id, name, surname, patronymic FROM users OFFSET $1 LIMIT $2) 
 		WHERE true
 	`
 
-	params := []any{offset, limit}
+	params = []any{offset, limit}
 
-	// Параметры 1 и 2 - offset и limit
+	// Начинаем с третьего параметра, потому что параметры 1 и 2 - offset и limit
 	pholder := 3
-	for k, v := range filter {
-		if k != "" {
-			// k - имя поля в базе данных
-			// v - желаемое значение для k
-			// pholder - номер плейсхолдера ($1, $2 и т. д.)
-			query += fmt.Sprintf(" AND %s = $%d", k, pholder)
-			params = append(params, v)
+	for field, targets := range filter {
+		if field == "" || len(targets) == 0 {
+			continue
 		}
-		pholder++
+
+		// field - имя поля в базе данных
+		// targets - желаемое значение для k
+		// pholder - номер плейсхолдера ($1, $2 и т. д.)
+		query += " AND ("
+		for _, t := range targets {
+			query += fmt.Sprintf(" %s = $%d OR", field, pholder)
+			params = append(params, t)
+			pholder++
+		}
+
+		query = strings.TrimSuffix(query, " OR") // убираем последний OR
+		query += ")"
 	}
 
+	return query, params
+}
+
+// GetFiltered возвращает список пользователей, поля которых равны указанным значениям.
+// Параметр filter является мапой, в которой ключи - имена свойств, а значения - желаемые значения для свойств.
+func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, filter map[string][]any) ([]model.User, error) {
+	query, params := createFilteringQuery(offset, limit, filter)
 	rows, err := r.db.QueryContext(ctx, query, params...)
 	if err != nil {
 		return nil, err
@@ -60,6 +75,7 @@ func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, fi
 	return users, nil
 }
 
+// Create создаёт нового пользователя в базе данных.
 func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic string) (*model.User, error) {
 	if name == "" || surname == "" {
 		return nil, errors.New("name or surname cannot be empty")
@@ -76,11 +92,13 @@ func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic 
 	return &created, nil
 }
 
+// Delete удаляет пользователя из базы данных по id.
 func (r *UsersRepository) Delete(ctx context.Context, uid int64) error {
 	_, err := r.db.ExecContext(ctx, "DELETE FROM users WHERE id = $1", uid)
 	return err
 }
 
+// Exists воззвращает true, если пользователь с указанным id существует, иначе false.
 func (r *UsersRepository) Exists(ctx context.Context, id int64) bool {
 	row := r.db.QueryRowContext(ctx, "SELECT id FROM users WHERE id = $1", id)
 	return row.Scan() != sql.ErrNoRows
