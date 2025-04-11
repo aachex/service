@@ -40,6 +40,22 @@ func EnrichGender(user model.User, enriched *model.EnrichedUser) error {
 	return nil
 }
 
+func EnrichNationality(user model.User, enriched *model.EnrichedUser) error {
+	type resBody struct {
+		Country []struct {
+			Id string `json:"country_id"`
+		}
+	}
+
+	body, err := httpGet[resBody]("https://api.nationalize.io/?name=" + user.Name)
+	if err != nil {
+		return err
+	}
+
+	enriched.Nationality = body.Country[0].Id
+	return nil
+}
+
 func httpGet[T any](url string) (body T, err error) {
 	res, err := http.Get(url)
 	if err != nil {

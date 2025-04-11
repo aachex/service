@@ -1,6 +1,7 @@
 package enricher
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aachex/service/internal/model"
@@ -35,4 +36,20 @@ func TestEnrichGender(t *testing.T) {
 	if enriched.Gender == "" {
 		t.Error("gender is empty")
 	}
+}
+
+func TestEnrichNationality(t *testing.T) {
+	var enriched model.EnrichedUser
+	enriched.User = user
+
+	err := EnrichNationality(user, &enriched)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if enriched.Nationality == "" {
+		t.Error("nationality is empty")
+	}
+
+	fmt.Println(enriched)
 }
