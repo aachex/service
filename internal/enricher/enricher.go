@@ -62,7 +62,7 @@ func EnrichNationality(user *model.User) error {
 		}
 	}
 
-	body, err := httpGet[resBody]("https://api.nationalize.io/?name=" + user.Name)
+	body, err := httpGet[resBody]("https://api.nationalize.io/?name=" + user.Surname)
 	if err != nil {
 		return err
 	}
