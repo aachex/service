@@ -10,7 +10,7 @@ import (
 )
 
 type usersRepository interface {
-	GetFiltered(ctx context.Context, offset, limit int, filterOptions map[string][]any) ([]model.User, error)
+	GetFiltered(ctx context.Context, offset, limit int, filter map[string][]any) ([]model.User, error)
 	Create(ctx context.Context, name, surname, patronymic string, age int, gender, nationality string) (int64, error)
 	Delete(ctx context.Context, uid int64) error
 }
@@ -105,27 +105,18 @@ func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Surname:    body.Surname,
 		Patronymic: body.Patronymic,
 	}
-	var enriched model.EnrichedData
 
-	enricher.EnrichUser(user, &enriched)
+	enricher.EnrichUser(&user)
 
-	id, err := c.users.Create(r.Context(), user.Name, user.Surname, user.Patronymic, enriched.Age, enriched.Gender, enriched.Nationality)
+	id, err := c.users.Create(r.Context(), user.Name, user.Surname, user.Patronymic, user.Age, user.Gender, user.Nationality)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	user.Id = id
 
-	var respBody struct {
-		model.User
-		model.EnrichedData
-	}
-
-	respBody.User = user
-	respBody.EnrichedData = enriched
-
 	w.WriteHeader(http.StatusCreated)
-	writeReponse(respBody, w)
+	writeReponse(user, w)
 }
 
 func (c *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {

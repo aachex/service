@@ -22,7 +22,7 @@ func createFilteringQuery(offset, limit int, filter map[string][]any) (query str
 	// запрос по умолчанию, который вернёт выборку пользователей
 	query = `
 		SELECT *
-		FROM (SELECT id, name, surname, patronymic FROM users OFFSET $1 LIMIT $2) 
+		FROM (SELECT id, name, surname, patronymic, age, gender, nationality FROM users OFFSET $1 LIMIT $2) 
 		WHERE true
 	`
 
@@ -64,7 +64,7 @@ func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, fi
 	users := make([]model.User, 0)
 	var u model.User
 	for rows.Next() {
-		err = rows.Scan(&u.Id, &u.Name, &u.Surname, &u.Patronymic)
+		err = rows.Scan(&u.Id, &u.Name, &u.Surname, &u.Patronymic, &u.Age, &u.Gender, &u.Nationality)
 		if err != nil {
 			return nil, err
 		}
