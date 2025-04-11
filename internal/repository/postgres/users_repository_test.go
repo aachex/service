@@ -14,13 +14,21 @@ import (
 
 // mock struct
 type m struct {
-	name    string
-	surname string
+	name        string
+	surname     string
+	patronymic  string
+	age         int
+	gender      string
+	nationality string
 }
 
 var mock = m{
-	name:    "Artem",
-	surname: "Dmitriev",
+	name:        "Artem",
+	surname:     "Dmitriev",
+	patronymic:  "Evgenievich",
+	age:         17,
+	gender:      "male",
+	nationality: "RU",
 }
 
 func TestCreate(t *testing.T) {
@@ -29,7 +37,7 @@ func TestCreate(t *testing.T) {
 
 	repo := NewUsersRepository(db)
 
-	id, err := repo.Create(t.Context(), mock.name, mock.surname, "", -1, "", "")
+	id, err := repo.Create(t.Context(), mock.name, mock.surname, mock.patronymic, mock.age, mock.gender, mock.nationality)
 	if err != nil {
 		t.Error(err)
 	}
@@ -81,7 +89,7 @@ func TestGetFiltered(t *testing.T) {
 		}
 	}()
 
-	filtered, err := repo.GetFiltered(t.Context(), 0, 100, filter)
+	filtered, err := repo.GetFiltered(t.Context(), filter, 0, 100)
 	if err != nil {
 		t.Error(err)
 	}
@@ -92,6 +100,39 @@ func TestGetFiltered(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	loadEnv(t)
+	db := openDb(t)
+
+	repo := NewUsersRepository(db)
+	id, err := repo.Create(t.Context(), mock.name, mock.surname, mock.patronymic, mock.age, mock.gender, mock.nationality)
+	if err != nil {
+		t.Error(err)
+	}
+
+	updates := map[string]any{
+		"name":        "Dima",
+		"age":         18,
+		"nationality": "JP",
+	}
+
+	err = repo.Update(t.Context(), id, updates)
+	if err != nil {
+		t.Error(err)
+	}
+
+	user, err := repo.GetById(t.Context(), id, 0, 100000)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if user.Name != updates["name"] || user.Age != updates["age"] || user.Nationality != updates["nationality"] {
+		t.Error("failed to update user")
+	}
+}
+
+// helpers
 
 func openDb(t *testing.T) *sql.DB {
 	db, err := sql.Open("postgres", os.Getenv("DB_CONN"))

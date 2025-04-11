@@ -10,8 +10,9 @@ import (
 )
 
 type usersRepository interface {
-	GetFiltered(ctx context.Context, offset, limit int, filter map[string][]any) ([]model.User, error)
+	GetFiltered(ctx context.Context, filter map[string][]any, offset, limit int) ([]model.User, error)
 	Create(ctx context.Context, name, surname, patronymic string, age int, gender, nationality string) (int64, error)
+	Update(ctx context.Context, id int64, updates map[string]any) error
 	Delete(ctx context.Context, uid int64) error
 }
 
@@ -35,6 +36,10 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc(
 		"POST "+prefix+"/users/get",
 		c.GetUsers)
+
+	mux.HandleFunc(
+		"PATCH "+prefix+"/users/upd/{id}",
+		c.UpdateUser)
 
 	mux.HandleFunc(
 		"DELETE "+prefix+"/users/delete",
@@ -73,7 +78,7 @@ func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.users.GetFiltered(r.Context(), offset, limit, filter)
+	users, err := c.users.GetFiltered(r.Context(), filter, offset, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -117,6 +122,26 @@ func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	writeReponse(user, w)
+}
+
+// HTTP PATCH /users/upd/{id}
+func (c *UsersController) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updates, err := readBody[map[string]any](r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.users.Update(r.Context(), id, updates)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 func (c *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {

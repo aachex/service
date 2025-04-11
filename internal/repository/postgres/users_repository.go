@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -49,12 +50,14 @@ func createFilteringQuery(offset, limit int, filter map[string][]any) (query str
 		query += ")"
 	}
 
+	query += " ORDER BY id"
+
 	return query, params
 }
 
 // GetFiltered возвращает список пользователей, поля которых равны указанным значениям.
 // Параметр filter является мапой, в которой ключи - имена свойств, а значения - желаемые значения для свойств.
-func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, filter map[string][]any) ([]model.User, error) {
+func (r *UsersRepository) GetFiltered(ctx context.Context, filter map[string][]any, offset, limit int) ([]model.User, error) {
 	query, params := createFilteringQuery(offset, limit, filter)
 	rows, err := r.db.QueryContext(ctx, query, params...)
 	if err != nil {
@@ -74,6 +77,22 @@ func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, fi
 	return users, nil
 }
 
+func (r *UsersRepository) GetById(ctx context.Context, id int64, offset, limit int) (user model.User, err error) {
+	filter := map[string][]any{
+		"id": {id},
+	}
+	match, err := r.GetFiltered(ctx, filter, offset, limit)
+	if err != nil {
+		return user, err
+	}
+
+	if len(match) == 0 {
+		return user, nil
+	}
+
+	return match[0], nil
+}
+
 // Create создаёт нового пользователя в базе данных.
 func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic string, age int, gender, nationality string) (int64, error) {
 	row := r.db.QueryRowContext(
@@ -87,6 +106,39 @@ func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic 
 	}
 
 	return uid, nil
+}
+
+func (r *UsersRepository) Update(ctx context.Context, id int64, updates map[string]any) error {
+	if len(updates) == 0 {
+		return errors.New("no updates")
+	}
+	if _, ok := updates["id"]; ok {
+		return errors.New("field id is not updatable")
+	}
+
+	// строим SQL-запрос, который обновит все поля, указанные в updates
+	params := []any{}
+	updQuery := "UPDATE USERS SET"
+	pholder := 1
+	for field, val := range updates {
+		updQuery += fmt.Sprintf(" %s = $%d", field, pholder)
+		if pholder < len(updates) {
+			updQuery += ","
+		}
+
+		params = append(params, val)
+		pholder++
+	}
+
+	updQuery += fmt.Sprintf(" WHERE id = $%d", pholder)
+	params = append(params, id)
+
+	_, err := r.db.ExecContext(ctx, updQuery, params...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete удаляет пользователя из базы данных по id.
