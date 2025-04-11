@@ -8,8 +8,23 @@ import (
 	"github.com/aachex/service/internal/model"
 )
 
-func EnrichUser(user model.User) (model.EnrichedUser, error) {
-	return model.EnrichedUser{}, nil
+type enricher = func(user model.User, enriched *model.EnrichedUser) error
+
+func EnrichUser(user model.User, enriched *model.EnrichedUser) error {
+	enrichers := []enricher{
+		EnrichAge,
+		EnrichGender,
+		EnrichNationality,
+	}
+
+	for _, enrich := range enrichers {
+		err := enrich(user, enriched)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func EnrichAge(user model.User, enriched *model.EnrichedUser) error {

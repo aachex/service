@@ -9,9 +9,21 @@ import (
 
 var user = model.User{
 	Id:         921,
-	Name:       "Dima",
+	Name:       "Dmitry",
 	Surname:    "Dimov",
 	Patronymic: "Dmitrievich",
+}
+
+func TestEnrichUser(t *testing.T) {
+	var enriched model.EnrichedUser
+	enriched.User = user
+
+	err := EnrichUser(user, &enriched)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(enriched.Nationality)
 }
 
 func TestEnrichAge(t *testing.T) {
