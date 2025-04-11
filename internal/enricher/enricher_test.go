@@ -1,24 +1,38 @@
 package enricher
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aachex/service/internal/model"
 )
 
-func TestEnrichAge(t *testing.T) {
-	user := model.User{
-		Id:         921,
-		Name:       "Artem",
-		Surname:    "Fatahov",
-		Patronymic: "Dmitrievich",
-	}
+var user = model.User{
+	Id:         921,
+	Name:       "Dima",
+	Surname:    "Dimov",
+	Patronymic: "Dmitrievich",
+}
 
-	enriched, err := EnrichAge(user)
+func TestEnrichAge(t *testing.T) {
+	var enriched model.EnrichedUser
+	enriched.User = user
+
+	err := EnrichAge(user, &enriched)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestEnrichGender(t *testing.T) {
+	var enriched model.EnrichedUser
+	enriched.User = user
+
+	err := EnrichGender(user, &enriched)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fmt.Println(enriched)
+	if enriched.Gender == "" {
+		t.Error("gender is empty")
+	}
 }

@@ -12,29 +12,49 @@ func EnrichUser(user model.User) (model.EnrichedUser, error) {
 	return model.EnrichedUser{}, nil
 }
 
-func EnrichAge(user model.User) (result model.EnrichedUser, err error) {
-	result.User = user
-	url := "https://api.agify.io/?name=" + user.Name
+func EnrichAge(user model.User, enriched *model.EnrichedUser) error {
+	type resBody struct {
+		Age int `json:"age"`
+	}
 
+	body, err := httpGet[resBody]("https://api.agify.io/?name=" + user.Name)
+	if err != nil {
+		return err
+	}
+
+	enriched.Age = body.Age
+	return nil
+}
+
+func EnrichGender(user model.User, enriched *model.EnrichedUser) error {
+	type resBody struct {
+		Gender string `json:"gender"`
+	}
+
+	body, err := httpGet[resBody]("https://api.genderize.io/?name=" + user.Name)
+	if err != nil {
+		return err
+	}
+
+	enriched.Gender = body.Gender
+	return nil
+}
+
+func httpGet[T any](url string) (body T, err error) {
 	res, err := http.Get(url)
 	if err != nil {
-		return result, err
+		return body, err
 	}
 	defer res.Body.Close()
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return result, err
+		return body, err
 	}
 
-	var body struct {
-		Count int `json:"count"`
-		Age   int `json:"age"`
-	}
 	err = json.Unmarshal(b, &body)
 	if err != nil {
-		return result, err
+		return body, err
 	}
-	result.Age = body.Age
-	return result, nil
+	return body, nil
 }
