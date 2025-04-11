@@ -7,19 +7,22 @@ import (
 )
 
 // readBody получает из тела запроса в формате json структуру T.
-func readBody[T any](r *http.Request) (*T, error) {
+func readBody[T any](r *http.Request) (obj T, err error) {
+	if r.Body == nil {
+		return obj, nil
+	}
+
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		return obj, err
 	}
 
-	var obj T
 	err = json.Unmarshal(bodyBytes, &obj)
 	if err != nil {
-		return nil, err
+		return obj, err
 	}
 
-	return &obj, nil
+	return obj, nil
 }
 
 // writeReponse записывает структуру T в ответ в формате json.

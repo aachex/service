@@ -72,7 +72,7 @@ func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.users.GetFiltered(r.Context(), offset, limit, *filter)
+	users, err := c.users.GetFiltered(r.Context(), offset, limit, filter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
