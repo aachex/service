@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -77,10 +76,6 @@ func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, fi
 
 // Create создаёт нового пользователя в базе данных.
 func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic string) (*model.User, error) {
-	if name == "" || surname == "" {
-		return nil, errors.New("name or surname cannot be empty")
-	}
-
 	row := r.db.QueryRowContext(ctx, "INSERT INTO users(name, surname, patronymic) VALUES($1, $2, $3) RETURNING id", name, surname, patronymic)
 
 	var uid int64

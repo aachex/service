@@ -51,7 +51,7 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 //
 // При таком теле запроса метод вернёт всех пользователей с именами Artem или Dmitry и фамилиями Filin или Okunev.
 //
-// HTTP POST /users/new
+// HTTP POST /users/get
 func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	// Пагинация
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -91,6 +91,11 @@ func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user, err := readBody[reqBody](r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if user.Name == "" || user.Surname == "" {
+		http.Error(w, "name or surname cannot be empty", http.StatusBadRequest)
 		return
 	}
 
