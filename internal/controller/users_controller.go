@@ -7,6 +7,7 @@ import (
 
 	"github.com/aachex/service/internal/enricher"
 	"github.com/aachex/service/internal/model"
+	"github.com/aachex/service/internal/pagination"
 )
 
 type usersRepository interface {
@@ -35,7 +36,7 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 
 	mux.HandleFunc(
 		"POST "+prefix+"/users/get",
-		c.GetUsers)
+		pagination.Middleware(c.GetUsers))
 
 	mux.HandleFunc(
 		"PATCH "+prefix+"/users/upd/{id}",
@@ -60,17 +61,7 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 // HTTP POST /users/get
 func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	// Пагинация
-	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	pag := r.Context().Value(pagination.CtxKey("pagination")).(pagination.Pagination)
 
 	filter, err := readBody[map[string][]any](r)
 	if err != nil {
@@ -78,7 +69,7 @@ func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.users.GetFiltered(r.Context(), filter, offset, limit)
+	users, err := c.users.GetFiltered(r.Context(), filter, pag.Offset, pag.Limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
