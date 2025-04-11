@@ -29,21 +29,21 @@ func TestCreate(t *testing.T) {
 
 	repo := NewUsersRepository(db)
 
-	user, err := repo.Create(t.Context(), mock.name, mock.surname, "")
+	id, err := repo.Create(t.Context(), mock.name, mock.surname, "", -1, "", "")
 	if err != nil {
 		t.Error(err)
 	}
 
 	// clear db
 	defer func() {
-		err = repo.Delete(t.Context(), user.Id)
+		err = repo.Delete(t.Context(), id)
 		if err != nil {
 			t.Error(err)
 		}
 	}()
 
-	if !repo.Exists(t.Context(), user.Id) {
-		t.Errorf("user %d wasn't created", user.Id)
+	if !repo.Exists(t.Context(), id) {
+		t.Errorf("user %d wasn't created", id)
 	}
 }
 
@@ -64,11 +64,11 @@ func TestGetFiltered(t *testing.T) {
 	}
 
 	for i := range users {
-		created, err := repo.Create(t.Context(), users[i].Name, users[i].Surname, users[i].Patronymic)
+		id, err := repo.Create(t.Context(), users[i].Name, users[i].Surname, users[i].Patronymic, 23, "male or female", "RU")
 		if err != nil {
 			t.Error(err)
 		}
-		users[i].Id = created.Id
+		users[i].Id = id
 	}
 
 	// clear db

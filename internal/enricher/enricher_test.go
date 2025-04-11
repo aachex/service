@@ -15,8 +15,7 @@ var user = model.User{
 }
 
 func TestEnrichUser(t *testing.T) {
-	var enriched model.EnrichedUser
-	enriched.User = user
+	var enriched model.EnrichedData
 
 	err := EnrichUser(user, &enriched)
 	if err != nil {
@@ -25,8 +24,7 @@ func TestEnrichUser(t *testing.T) {
 }
 
 func TestEnrichAge(t *testing.T) {
-	var enriched model.EnrichedUser
-	enriched.User = user
+	var enriched model.EnrichedData
 
 	err := EnrichAge(user, &enriched)
 	if err != nil {
@@ -35,8 +33,7 @@ func TestEnrichAge(t *testing.T) {
 }
 
 func TestEnrichGender(t *testing.T) {
-	var enriched model.EnrichedUser
-	enriched.User = user
+	var enriched model.EnrichedData
 
 	err := EnrichGender(user, &enriched)
 	if err != nil {
@@ -49,8 +46,7 @@ func TestEnrichGender(t *testing.T) {
 }
 
 func TestEnrichNationality(t *testing.T) {
-	var enriched model.EnrichedUser
-	enriched.User = user
+	var enriched model.EnrichedData
 
 	err := EnrichNationality(user, &enriched)
 	if err != nil {

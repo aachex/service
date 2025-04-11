@@ -8,9 +8,9 @@ import (
 	"github.com/aachex/service/internal/model"
 )
 
-type enricher = func(user model.User, enriched *model.EnrichedUser) error
+type enricher = func(user model.User, enriched *model.EnrichedData) error
 
-func EnrichUser(user model.User, enriched *model.EnrichedUser) error {
+func EnrichUser(user model.User, enriched *model.EnrichedData) error {
 	enrichers := []enricher{
 		EnrichAge,
 		EnrichGender,
@@ -27,7 +27,7 @@ func EnrichUser(user model.User, enriched *model.EnrichedUser) error {
 	return nil
 }
 
-func EnrichAge(user model.User, enriched *model.EnrichedUser) error {
+func EnrichAge(user model.User, enriched *model.EnrichedData) error {
 	type resBody struct {
 		Age int `json:"age"`
 	}
@@ -41,7 +41,7 @@ func EnrichAge(user model.User, enriched *model.EnrichedUser) error {
 	return nil
 }
 
-func EnrichGender(user model.User, enriched *model.EnrichedUser) error {
+func EnrichGender(user model.User, enriched *model.EnrichedData) error {
 	type resBody struct {
 		Gender string `json:"gender"`
 	}
@@ -55,7 +55,7 @@ func EnrichGender(user model.User, enriched *model.EnrichedUser) error {
 	return nil
 }
 
-func EnrichNationality(user model.User, enriched *model.EnrichedUser) error {
+func EnrichNationality(user model.User, enriched *model.EnrichedData) error {
 	type resBody struct {
 		Country []struct {
 			Id string `json:"country_id"`
@@ -66,8 +66,9 @@ func EnrichNationality(user model.User, enriched *model.EnrichedUser) error {
 	if err != nil {
 		return err
 	}
-
-	enriched.Nationality = body.Country[0].Id
+	if len(body.Country) > 0 {
+		enriched.Nationality = body.Country[0].Id
+	}
 	return nil
 }
 

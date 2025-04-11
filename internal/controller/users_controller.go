@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/aachex/service/internal/enricher"
 	"github.com/aachex/service/internal/model"
 )
 
 type usersRepository interface {
 	GetFiltered(ctx context.Context, offset, limit int, filterOptions map[string][]any) ([]model.User, error)
-	Create(ctx context.Context, name, surname, patronymic string) (*model.User, error)
+	Create(ctx context.Context, name, surname, patronymic string, age int, gender, nationality string) (int64, error)
 	Delete(ctx context.Context, uid int64) error
 }
 
@@ -88,25 +89,43 @@ func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Patronymic string `json:"patronymic"`
 	}
 
-	user, err := readBody[reqBody](r)
+	body, err := readBody[reqBody](r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if user.Name == "" || user.Surname == "" {
+	if body.Name == "" || body.Surname == "" {
 		http.Error(w, "name or surname cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	createdUser, err := c.users.Create(r.Context(), user.Name, user.Surname, user.Patronymic)
+	user := model.User{
+		Name:       body.Name,
+		Surname:    body.Surname,
+		Patronymic: body.Patronymic,
+	}
+	var enriched model.EnrichedData
+
+	enricher.EnrichUser(user, &enriched)
+
+	id, err := c.users.Create(r.Context(), user.Name, user.Surname, user.Patronymic, enriched.Age, enriched.Gender, enriched.Nationality)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	user.Id = id
+
+	var respBody struct {
+		model.User
+		model.EnrichedData
+	}
+
+	respBody.User = user
+	respBody.EnrichedData = enriched
 
 	w.WriteHeader(http.StatusCreated)
-	writeReponse(createdUser, w)
+	writeReponse(respBody, w)
 }
 
 func (c *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {

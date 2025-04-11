@@ -75,16 +75,18 @@ func (r *UsersRepository) GetFiltered(ctx context.Context, offset, limit int, fi
 }
 
 // Create создаёт нового пользователя в базе данных.
-func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic string) (*model.User, error) {
-	row := r.db.QueryRowContext(ctx, "INSERT INTO users(name, surname, patronymic) VALUES($1, $2, $3) RETURNING id", name, surname, patronymic)
+func (r *UsersRepository) Create(ctx context.Context, name, surname, patronymic string, age int, gender, nationality string) (int64, error) {
+	row := r.db.QueryRowContext(
+		ctx,
+		`INSERT INTO users(name, surname, patronymic, age, gender, nationality) 
+		VALUES($1, $2, $3, $4, $5, $6) RETURNING id`, name, surname, patronymic, age, gender, nationality)
 
 	var uid int64
 	if err := row.Scan(&uid); err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	created := model.User{Id: uid, Name: name, Surname: surname, Patronymic: patronymic}
-	return &created, nil
+	return uid, nil
 }
 
 // Delete удаляет пользователя из базы данных по id.
