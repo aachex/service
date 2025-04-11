@@ -23,7 +23,7 @@ func createFilteringQuery(offset, limit int, filter map[string][]any) (query str
 	// запрос по умолчанию, который вернёт выборку пользователей
 	query = `
 		SELECT *
-		FROM (SELECT id, name, surname, patronymic, age, gender, nationality FROM users OFFSET $1 LIMIT $2) 
+		FROM (SELECT * FROM users OFFSET $1 LIMIT $2) 
 		WHERE true
 	`
 
