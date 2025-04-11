@@ -1,13 +1,14 @@
 package main
 
 import (
-	"database/sql"
+	"context"
+	"fmt"
 	"log"
-	"net/http"
-	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/aachex/service/internal/controller"
-	"github.com/aachex/service/internal/repository/postgres"
+	"github.com/aachex/service/internal/app"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // postgres driver
 )
@@ -18,27 +19,23 @@ func main() {
 		log.Fatal("Failed to load .env file")
 	}
 
-	// Подключение к бд
-	db, err := sql.Open("postgres", os.Getenv("DB_CONN"))
+	bgCtx := context.Background()
+
+	ctx, stop := signal.NotifyContext(bgCtx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	app := app.New()
+	go app.Start(ctx)
+
+	<-ctx.Done()
+
+	fmt.Println("shutdown")
+
+	shutdownCtx, cancel := context.WithTimeout(bgCtx, 5*time.Second)
+	defer cancel()
+
+	err = app.Shutdown(shutdownCtx)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Repositories
-	users := postgres.NewUsersRepository(db)
-
-	// Handlers
-	mux := http.NewServeMux()
-
-	usersController := controller.NewUsersController(users)
-	usersController.RegisterHandlers(mux)
-
-	port := os.Getenv("PORT")
-	addr := ":" + port
-	http.ListenAndServe(addr, mux)
 }
