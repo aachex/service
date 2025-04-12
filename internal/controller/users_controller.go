@@ -51,13 +51,13 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 		logging.Middleware(c.logger, c.DeleteUser))
 }
 
-// @summary	Получение пользователей с возможностью фильтрации по полям.
-// @produce	json
-// @success	200
-// @param offset query integer true "offset"
-// @param limit query integer true "limit"
-// @param request body map[string][]any true "filter"
-// @router		/users/get [post]
+//	@summary	Получение пользователей с возможностью фильтрации по полям.
+//	@produce	json
+//	@success	200
+//	@param		offset	query	integer				true	"offset"
+//	@param		limit	query	integer				true	"limit"
+//	@param		request	body	map[string][]any	true	"filter"
+//	@router		/users/get [post]
 func (c *UsersController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	// Пагинация
 	pag := r.Context().Value(pagination.CtxKey("pagination")).(pagination.Pagination)
@@ -83,12 +83,12 @@ type reqBody struct {
 	Patronymic string `json:"patronymic"`
 }
 
-// @summary	Создание нового пользователя в базе данных.
-// @accept		json
-// @produce	json
-// @param		request	body		reqBody	true	"Request"
-// @success	200		{object}	model.User
-// @router		/users/new [post]
+//	@summary	Создание нового пользователя в базе данных.
+//	@accept		json
+//	@produce	json
+//	@param		request	body		reqBody	true	"Request"
+//	@success	200		{object}	model.User
+//	@router		/users/new [post]
 func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	body, err := readBody[reqBody](r)
 	if err != nil {
@@ -120,12 +120,12 @@ func (c *UsersController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	writeReponse(user, w)
 }
 
-// @summary	Обновляет указанные данные у пользователя по id.
-// @accept		json
-// @success	200
-// @param		id		path	integer			true	"User ID"
-// @param		request	body	model.User	true	"Request"
-// @router		/users/upd/{id} [patch]
+//	@summary	Обновляет указанные данные у пользователя по id.
+//	@accept		json
+//	@success	200
+//	@param		id		path	integer		true	"User ID"
+//	@param		request	body	model.User	true	"Request"
+//	@router		/users/upd/{id} [patch]
 func (c *UsersController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
@@ -145,10 +145,10 @@ func (c *UsersController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @summary	Удаление пользователя по id.
-// @success	200
-// @param		id	path	integer	true	"User ID"
-// @router		/users/delete/{id} [delete]
+//	@summary	Удаление пользователя по id.
+//	@success	200
+//	@param		id	path	integer	true	"User ID"
+//	@router		/users/delete/{id} [delete]
 func (c *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
