@@ -20,7 +20,7 @@ func New() *App {
 	return &App{}
 }
 
-func (app *App) Start(ctx context.Context) {
+func (app *App) Start() {
 	var err error
 
 	// Подключение к бд
@@ -53,6 +53,15 @@ func (app *App) Start(ctx context.Context) {
 }
 
 func (app *App) Shutdown(ctx context.Context) error {
-	app.db.Close()
-	return app.srv.Shutdown(ctx)
+	err := app.srv.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = app.db.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
