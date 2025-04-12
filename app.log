@@ -1,6 +1,0 @@
-{"time":"2025-04-12T15:53:15.6245283+03:00","level":"INFO","msg":"connected to db"}
-{"time":"2025-04-12T15:53:20.7508793+03:00","level":"DEBUG","msg":"incoming request","path":"/api/v1/users/get","method":"POST","userAgent":"PostmanRuntime/7.43.3"}
-{"time":"2025-04-12T15:53:20.7571682+03:00","level":"DEBUG","msg":"request handled","path":"/api/v1/users/get","method":"POST","statusCode":200,"responseBody":"[{\"id\":286,\"name\":\"Dima\",\"surname\":\"Dmitriev\",\"patronymic\":\"Evgenievich\",\"age\":18,\"gender\":\"male\",\"nationality\":\"JP\"},{\"id\":301,\"name\":\"higga\",\"surname\":\"figga\",\"patronymic\":\"bigga\",\"age\":0,\"gender\":\"female\",\"nationality\":\"JM\"}]"}
-{"time":"2025-04-12T15:54:01.285234+03:00","level":"DEBUG","msg":"incoming request","path":"/api/v1/users/new","method":"POST","userAgent":"PostmanRuntime/7.43.3"}
-{"time":"2025-04-12T15:54:03.3704846+03:00","level":"DEBUG","msg":"request handled","path":"/api/v1/users/new","method":"POST","statusCode":201,"responseBody":"{\"id\":314,\"name\":\"Dmitry\",\"surname\":\"Davidov\",\"patronymic\":\"Valdimirovich\",\"age\":40,\"gender\":\"male\",\"nationality\":\"IL\"}"}
-{"time":"2025-04-12T15:54:16.4381941+03:00","level":"INFO","msg":"shutdown"}

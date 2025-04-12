@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/aachex/service/internal/model"
@@ -70,10 +70,12 @@ func TestCreateAndDeleteUser(t *testing.T) {
 		t.Error(err)
 	}
 
-	r, err = http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/users/delete?id=%d", createdUser.Id), nil)
+	r, err = http.NewRequest(http.MethodDelete, "/api/v1/users/delete/{id}", nil)
 	if err != nil {
 		t.Error(err)
 	}
+	r.SetPathValue("id", strconv.FormatInt(createdUser.Id, 10))
+
 	w = httptest.NewRecorder()
 	c.DeleteUser(w, r)
 

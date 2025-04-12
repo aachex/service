@@ -47,7 +47,7 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 		logging.Middleware(c.logger, c.UpdateUser))
 
 	mux.HandleFunc(
-		"DELETE "+prefix+"/users/delete",
+		"DELETE "+prefix+"/users/delete/{id}",
 		logging.Middleware(c.logger, c.DeleteUser))
 }
 
@@ -140,7 +140,7 @@ func (c *UsersController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UsersController) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
