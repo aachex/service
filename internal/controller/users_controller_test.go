@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/aachex/service/internal/model"
+	"github.com/aachex/service/internal/pagination"
 	"github.com/aachex/service/internal/repository/postgres"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // postgres driver
@@ -29,8 +30,8 @@ func TestGetUsers(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	c := NewUsersController(users)
-	c.GetUsers(w, r)
+	c := NewUsersController(users, nil)
+	pagination.Middleware(c.GetUsers)(w, r)
 
 	if w.Result().StatusCode != http.StatusOK {
 		t.Errorf("Wanted status code 201, got %d", w.Result().StatusCode)
@@ -49,7 +50,7 @@ func TestCreateAndDeleteUser(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	c := NewUsersController(users)
+	c := NewUsersController(users, nil)
 	c.CreateUser(w, r)
 
 	if w.Result().StatusCode != http.StatusCreated {
@@ -80,6 +81,8 @@ func TestCreateAndDeleteUser(t *testing.T) {
 		t.Errorf("Wanted status code 200, got %d", w.Result().StatusCode)
 	}
 }
+
+// helpers
 
 func openDb(t *testing.T) *sql.DB {
 	db, err := sql.Open("postgres", os.Getenv("DB_CONN"))

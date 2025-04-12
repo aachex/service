@@ -2,10 +2,12 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/aachex/service/internal/enricher"
+	"github.com/aachex/service/internal/logging"
 	"github.com/aachex/service/internal/model"
 	"github.com/aachex/service/internal/pagination"
 )
@@ -18,12 +20,14 @@ type usersRepository interface {
 }
 
 type UsersController struct {
-	users usersRepository
+	users  usersRepository
+	logger *slog.Logger
 }
 
-func NewUsersController(ur usersRepository) *UsersController {
+func NewUsersController(ur usersRepository, l *slog.Logger) *UsersController {
 	return &UsersController{
-		users: ur,
+		users:  ur,
+		logger: l,
 	}
 }
 
@@ -32,19 +36,19 @@ func (c *UsersController) RegisterHandlers(mux *http.ServeMux) {
 
 	mux.HandleFunc(
 		"POST "+prefix+"/users/new",
-		c.CreateUser)
+		logging.Middleware(c.logger, c.CreateUser))
 
 	mux.HandleFunc(
 		"POST "+prefix+"/users/get",
-		pagination.Middleware(c.GetUsers))
+		logging.Middleware(c.logger, pagination.Middleware(c.GetUsers)))
 
 	mux.HandleFunc(
 		"PATCH "+prefix+"/users/upd/{id}",
-		c.UpdateUser)
+		logging.Middleware(c.logger, c.UpdateUser))
 
 	mux.HandleFunc(
 		"DELETE "+prefix+"/users/delete",
-		c.DeleteUser)
+		logging.Middleware(c.logger, c.DeleteUser))
 }
 
 // GetUsers возвращает список пользователей. В качестве тела запроса принимает параметры фильтрации.

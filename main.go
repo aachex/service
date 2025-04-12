@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,12 +15,23 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	// Логгер
+	logFile, err := os.OpenFile("app.log", os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		log.Fatal("Failed to load .env file")
+		panic(err)
+	}
+	logOpts := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+	logger := slog.New(slog.NewJSONHandler(logFile, logOpts))
+	slog.SetDefault(logger)
+
+	if err := godotenv.Load(); err != nil {
+		logger.Error(err.Error())
 	}
 
-	app := app.New()
+	// Запуск приложения
+	app := app.New(logger)
 	go app.Start()
 
 	// shutdown
@@ -33,8 +44,7 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = app.Shutdown(shutdownCtx)
-	if err != nil {
-		log.Fatal(err)
+	if err := app.Shutdown(shutdownCtx); err != nil {
+		logger.Error(err.Error())
 	}
 }

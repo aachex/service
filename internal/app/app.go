@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -12,12 +12,13 @@ import (
 )
 
 type App struct {
-	srv *http.Server
-	db  *sql.DB
+	srv    *http.Server
+	db     *sql.DB
+	logger *slog.Logger
 }
 
-func New() *App {
-	return &App{}
+func New(l *slog.Logger) *App {
+	return &App{logger: l}
 }
 
 func (app *App) Start() {
@@ -26,21 +27,23 @@ func (app *App) Start() {
 	// Подключение к бд
 	app.db, err = sql.Open("postgres", os.Getenv("DB_CONN"))
 	if err != nil {
-		log.Fatal(err)
+		app.logger.Error(err.Error())
+		return
 	}
-
 	err = app.db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		app.logger.Error(err.Error())
+		return
 	}
+	app.logger.Info("connected to db")
 
-	// Repositories
+	// Репозитории
 	users := postgres.NewUsersRepository(app.db)
 
-	// Handlers
+	// Обаботчики
 	mux := http.NewServeMux()
 
-	usersController := controller.NewUsersController(users)
+	usersController := controller.NewUsersController(users, app.logger)
 	usersController.RegisterHandlers(mux)
 
 	// Старт сервера
@@ -62,6 +65,8 @@ func (app *App) Shutdown(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	app.logger.Info("shutdown")
 
 	return nil
 }
