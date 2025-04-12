@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/aachex/service/docs"
 	"github.com/aachex/service/internal/controller"
 	"github.com/aachex/service/internal/repository/postgres"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type App struct {
@@ -42,6 +44,10 @@ func (app *App) Start() {
 
 	// Обаботчики
 	mux := http.NewServeMux()
+	mux.HandleFunc("/spec", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "docs/swagger.yaml")
+	})
+	mux.HandleFunc("/swagger/", httpSwagger.Handler(httpSwagger.URL("/spec")))
 
 	usersController := controller.NewUsersController(users, app.logger)
 	usersController.RegisterHandlers(mux)

@@ -12,12 +12,10 @@ func readBody[T any](r *http.Request) (obj T, err error) {
 		return obj, nil
 	}
 
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		return obj, err
+	err = json.NewDecoder(r.Body).Decode(&obj)
+	if err == io.EOF {
+		return obj, nil
 	}
-
-	err = json.Unmarshal(bodyBytes, &obj)
 	if err != nil {
 		return obj, err
 	}

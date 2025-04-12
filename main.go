@@ -14,6 +14,19 @@ import (
 	_ "github.com/lib/pq" // postgres driver
 )
 
+//	@title			Users service
+//	@version		1.0
+//
+//	@license.name	MIT
+//	@license.url	https://github.com/aachex/service/blob/dev/LICENSE
+//
+//	@contact.email	chekhonin.artem@gmail.com
+//
+//	@host			localhost:8080
+//	@BasePath		/api/v1
+//	@accept			json
+//	@produce		json
+//	@schemes		http https
 func main() {
 	// Логгер
 	logFile, err := os.OpenFile("app.log", os.O_WRONLY, os.ModePerm)

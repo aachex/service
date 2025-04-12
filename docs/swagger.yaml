@@ -1,0 +1,125 @@
+basePath: /api/v1
+consumes:
+- application/json
+definitions:
+  controller.reqBody:
+    properties:
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+  model.User:
+    properties:
+      age:
+        type: integer
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nationality:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: chekhonin.artem@gmail.com
+  license:
+    name: MIT
+    url: https://github.com/aachex/service/blob/dev/LICENSE
+  title: Users service
+  version: "1.0"
+paths:
+  /users/delete/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+      summary: Удаление пользователя по id.
+  /users/get:
+    post:
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            items: {}
+            type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Получение пользователей с возможностью фильтрации по полям.
+  /users/new:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.reqBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+      summary: Создание нового пользователя в базе данных.
+  /users/upd/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      responses:
+        "200":
+          description: OK
+      summary: Обновляет указанные данные у пользователя по id.
+produces:
+- application/json
+schemes:
+- http
+- https
+swagger: "2.0"
